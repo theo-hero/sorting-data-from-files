@@ -1,0 +1,17 @@
+/bin/
+/bin/
+/target/
+/out/
+/build/
+*.class
+*.log
+
+*.jar
+*.war
+
+#Eclipse
+.project
+.classpath
+.settings/
+.metadata/
+.recommenders/
