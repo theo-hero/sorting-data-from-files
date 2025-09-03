@@ -1,14 +1,17 @@
-package util;
+package main.java.util;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.util.ArrayList;
+import java.util.Collection;
 
 public final class Stats {
 	
-	static final MathContext mc = new MathContext(10, RoundingMode.HALF_UP);
+	static final MathContext mc = new MathContext(15, RoundingMode.HALF_UP);
+	
+	public record IntResult(String min, String max, BigInteger sum, BigDecimal avg) {}
+	public record DecResult(BigDecimal min, BigDecimal max, BigDecimal sum, BigDecimal avg) {}
 
 	private static int compareIntStr(String a, String b) {
 		boolean negA = a.startsWith("-");
@@ -27,7 +30,7 @@ public final class Stats {
 		return negA ? b.compareTo(a) : a.compareTo(b);
 	}
 
-	public void intStats(ArrayList<String> strNums) {
+	public IntResult intStats(Collection<String> strNums) {
 		String max = String.valueOf(Long.MIN_VALUE);
 		String min = String.valueOf(Long.MAX_VALUE);
 		Long sum = 0L;
@@ -61,14 +64,11 @@ public final class Stats {
 		} else {
 			avg = new BigDecimal(sumBig).divide(new BigDecimal(strNums.size()), mc);
 		}
-
-		System.out.println("Минимальное целое число: " + min);
-		System.out.println("Максимальное целое число: " + max);
-		System.out.println("Сумма: " + (sumBig == null ? sum : sumBig));
-		System.out.println("Среднее: " + avg);
+		
+		return new IntResult(min, max, (sumBig == null ? BigInteger.valueOf(sum) : sumBig), avg);
 	}
 
-	public void decimalStats(ArrayList<String> strNums) {
+	public DecResult decimalStats(Collection<String> strNums) {
 		BigDecimal max = BigDecimal.valueOf(Long.MIN_VALUE);
 		BigDecimal min = BigDecimal.valueOf(Long.MAX_VALUE);
 		BigDecimal sum = BigDecimal.ZERO;
@@ -81,10 +81,8 @@ public final class Stats {
 		}
 		
 		BigDecimal avg = sum.divide(new BigDecimal(strNums.size()), mc);
-
-		System.out.println("Минимальное число с плавающей запятой: " + min);
-		System.out.println("Максимальное число с плавающей запятой: " + max);
-		System.out.println("Сумма (точность до 10 значащих цифр): " + sum.round(mc));
-		System.out.println("Среднее (точность до 10 значащих цифр): " + avg);
+		sum = sum.round(mc);
+		
+		return new DecResult(min, max, sum, avg);
 	}
 }
