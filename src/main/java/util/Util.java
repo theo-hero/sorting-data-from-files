@@ -2,14 +2,9 @@ package main.java.util;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,30 +55,46 @@ public class Util {
 		return decEx.matcher(line).matches();
 	}
 
+	public static Path resolveFilepath(String dirPath) {
+		try {
+			Path input = Paths.get(dirPath);
+			Path dir;
+
+			if (Files.isDirectory(input) || dirPath.startsWith("/")) {
+				dir = input;
+			} else {
+				Path workDir = Paths.get(System.getProperty("user.dir"));
+				dir = workDir.resolve(input);
+			}
+
+			Files.createDirectories(dir);
+			if (!Files.isDirectory(dir)) {
+				throw new IOException("Директория не была создана: " + dir);
+			}
+			return dir;
+		} catch (IOException e) {
+			System.out.println("Не удалось использовать директорию " + dirPath
+					+ ", файл будет сохранён в текущей папке.");
+			return Paths.get(System.getProperty("user.dir"));
+		}
+	}
+
 	private static boolean isValidFilename(String name) {
 		String upper = name.toUpperCase();
 		List<String> reserved = List.of("CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6",
 				"COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9");
 		if (reserved.contains(upper))
 			return false;
-		if (name.isBlank()) return false;
+		if (name.isBlank())
+			return false;
 		return true;
 	}
 
-	private static void writeToTheFile(String path, String filename, ArrayList<?> data, boolean append) {
-		Path filepath;
+	private static void writeToTheFile(Path dir, String filename, ArrayList<?> data, boolean append) {
+		Path filepath = dir.resolve(filename);
 
-		try {
-			Path dir = Paths.get(path);
-			if (!Files.isDirectory(dir)) throw new IOException();
-			filepath = dir.resolve(filename);
-		} catch (IOException e) {
-			System.out.println("Не удалось использовать директорию " + path + ", файл будет сохранён в текущей папке.");
-			filepath = Paths.get(".");
-		}
-
-		try (BufferedWriter writer = Files.newBufferedWriter(filepath, encoding,
-				StandardOpenOption.CREATE, append ? StandardOpenOption.APPEND : StandardOpenOption.TRUNCATE_EXISTING))
+		try (BufferedWriter writer = Files.newBufferedWriter(filepath, encoding, StandardOpenOption.CREATE,
+				append ? StandardOpenOption.APPEND : StandardOpenOption.TRUNCATE_EXISTING))
 
 		{
 			for (Object elem : data) {
@@ -96,7 +107,7 @@ public class Util {
 	}
 
 	public static void main(String[] args) {
-		
+
 		String path = ".";
 		String prefix = "";
 		String stat = "";
@@ -133,7 +144,7 @@ public class Util {
 				addToExisting = true;
 				continue;
 			}
-			
+
 			if (isValidFilename(arg))
 				files.add(arg);
 			else
@@ -145,20 +156,15 @@ public class Util {
 			System.out.println(usage);
 			return;
 		}
-		
-		try {
-			Path dir = Paths.get(path);
-			if (!Files.isDirectory(dir)) throw new IOException();
-		} catch (IOException e) {
-			System.out.println("Не удалось использовать директорию " + path + ", файлы с результатами будут сохранены в текущей папке.");
-			path = ".";
-		}
+
+		Path dir = resolveFilepath(path);
 
 		for (String filename : files) {
 			try (BufferedReader reader = new BufferedReader(new FileReader(filename, encoding))) {
 				String line;
 				while ((line = reader.readLine()) != null) {
-					if (line.isBlank()) continue;
+					if (line.isBlank())
+						continue;
 					if (isInteger(line))
 						integers.add(line.trim());
 					else if (isFloat(line))
@@ -177,15 +183,15 @@ public class Util {
 		}
 
 		if (!integers.isEmpty()) {
-			writeToTheFile(path, prefix + "integers.txt", integers, addToExisting);
+			writeToTheFile(dir, prefix + "integers.txt", integers, addToExisting);
 		}
 
 		if (!floats.isEmpty()) {
-			writeToTheFile(path, prefix + "floats.txt", floats, addToExisting);
+			writeToTheFile(dir, prefix + "floats.txt", floats, addToExisting);
 		}
 
 		if (!strings.isEmpty()) {
-			writeToTheFile(path, prefix + "strings.txt", strings, addToExisting);
+			writeToTheFile(dir, prefix + "strings.txt", strings, addToExisting);
 		}
 
 		if (stat.equals("full") || stat.equals("short")) {
@@ -197,7 +203,7 @@ public class Util {
 				System.out.printf("В файл %sstrings.txt записано строк: %d \n", prefix, strings.size());
 		} else {
 			System.out.printf("Сортировка была произведена, результаты можете проверить в %s.\n",
-					(path == "." ? "текущей папке" : path));
+					(path == "." ? "текущей папке" : dir.toString()));
 		}
 
 		if (stat.equals("full")) {

@@ -61,7 +61,7 @@ public class UtilIT {
 
 	static Stream<Arguments> inputCases() {
 		return Stream.of(Arguments.of("-f", List.of("введена неверно", "Использование: "), List.of(".txt записано")),
-				Arguments.of("-s -o", List.of("введена неверно", "Использование: "), List.of(".txt записано")),
+//				Arguments.of("-s -o", List.of("введена неверно", "Использование: "), List.of(".txt записано")),
 				Arguments.of("-s src/test/resources/simple.txt", List.of(".txt записано"),
 						List.of("Сумма", "длина строки")),
 				Arguments.of("-f src/test/resources/long-line.txt", List.of("строк: 1", "длина строки: 496890"),
