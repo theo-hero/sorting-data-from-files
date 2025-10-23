@@ -135,10 +135,10 @@ public class Util {
 				i++;
 				continue;
 			case ("-s"):
-				stat = "short";
+				if (stat.isBlank()) stat = "short";
 				continue;
 			case ("-f"):
-				stat = "full";
+				if (stat.isBlank()) stat = "full";
 				continue;
 			case ("-a"):
 				addToExisting = true;
