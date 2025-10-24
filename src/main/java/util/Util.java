@@ -2,9 +2,13 @@ package main.java.util;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,25 +29,25 @@ public class Util {
 	private static String usage = """
 			Использование: java -jar sorting-data-from-files.jar [ОПЦИИ] <входной_файл1> <входной_файл2> ... <входной_файлN>
 
-			Строки из файлов читаются по очереди в порядке перечисления.
-			Разделитель записей во входных файлах - перевод строки.
-			По умолчанию результаты записываются в файлы integers.txt, floats.txt и strings.txt
+						Строки из файлов читаются по очереди в порядке перечисления.
+						Разделитель записей во входных файлах - перевод строки.
+						По умолчанию результаты записываются в файлы integers.txt, floats.txt и strings.txt
 
-			Параметры:
-			  -o <путь>          Каталог для выходных файлов
-			                     (по умолчанию - текущая папка).
+						Параметры:
+						  -o <путь>          Каталог для выходных файлов
+						                     (по умолчанию - текущая папка).
 
-			  -p <префикс>       Префикс имён выходных файлов.
+						  -p <префикс>       Префикс имён выходных файлов.
 
-			  -a                 Режим добавления: дописывать в существующие файлы
-			                     (по умолчанию файлы перезаписываются).
+						  -a                 Режим добавления: дописывать в существующие файлы
+						                     (по умолчанию файлы перезаписываются).
 
-			  -s                 Краткая статистика: только количество записанных элементов.
+						  -s                 Краткая статистика: только количество записанных элементов.
 
-			  -f                 Полная статистика:
-			                       * для чисел - min/max/сумма/среднее
-			                       * для строк - минимальная и максимальная длина
-			  """;
+						  -f                 Полная статистика:
+						                       * для чисел - min/max/сумма/среднее
+						                       * для строк - минимальная и максимальная длина
+						  """;
 
 	private static boolean isInteger(String line) {
 		line = line.trim();
@@ -68,7 +72,7 @@ public class Util {
 			}
 
 			Files.createDirectories(dir);
-			if (!Files.isDirectory(dir)) {
+						if (!Files.isDirectory(dir)) {
 				throw new IOException("Директория не была создана: " + dir);
 			}
 			return dir;
@@ -120,29 +124,34 @@ public class Util {
 
 		int argsSize = args.length;
 
+		System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, StandardCharsets.UTF_8));
+		System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err), true, StandardCharsets.UTF_8));
+
 		for (int i = 0; i < argsSize; i++) {
 			String arg = args[i];
 
 			switch (arg) {
-			case ("-o"):
-				if (i + 1 < argsSize)
-					path = args[i + 1];
-				i++;
-				continue;
-			case ("-p"):
-				if (i + 1 < argsSize && isValidFilename(args[i + 1]))
-					prefix = args[i + 1];
-				i++;
-				continue;
-			case ("-s"):
-				if (stat.isBlank()) stat = "short";
-				continue;
-			case ("-f"):
-				if (stat.isBlank()) stat = "full";
-				continue;
-			case ("-a"):
-				addToExisting = true;
-				continue;
+				case ("-o"):
+					if (i + 1 < argsSize)
+						path = args[i + 1];
+					i++;
+					continue;
+				case ("-p"):
+					if (i + 1 < argsSize && isValidFilename(args[i + 1]))
+						prefix = args[i + 1];
+					i++;
+					continue;
+				case ("-s"):
+					if (stat.isBlank())
+						stat = "short";
+					continue;
+				case ("-f"):
+					if (stat.isBlank())
+						stat = "full";
+					continue;
+				case ("-a"):
+					addToExisting = true;
+					continue;
 			}
 
 			if (isValidFilename(arg))
@@ -172,7 +181,7 @@ public class Util {
 					else
 						strings.add(line);
 				}
-			} catch (IOException e) {
+						} catch (IOException e) {
 				System.err.println("Ошибка при прочтении файла " + filename);
 			}
 		}

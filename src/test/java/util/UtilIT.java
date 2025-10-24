@@ -23,7 +23,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class UtilIT {
-	
+
 	public static record Result(int exitCode, String stdout) {
 	}
 
@@ -44,7 +44,7 @@ public class UtilIT {
 
 		String out;
 		try (BufferedReader br = new BufferedReader(
-				new InputStreamReader(p.getInputStream(), Charset.forName("windows-1251")))) {
+				new InputStreamReader(p.getInputStream(), Charset.forName("UTF-8")))) {
 			out = br.lines().collect(Collectors.joining("\n"));
 		}
 		int code = p.waitFor();
@@ -61,7 +61,8 @@ public class UtilIT {
 
 	static Stream<Arguments> inputCases() {
 		return Stream.of(Arguments.of("-f", List.of("введена неверно", "Использование: "), List.of(".txt записано")),
-//				Arguments.of("-s -o", List.of("введена неверно", "Использование: "), List.of(".txt записано")),
+				// Arguments.of("-s -o", List.of("введена неверно", "Использование: "),
+				// List.of(".txt записано")),
 				Arguments.of("-s src/test/resources/simple.txt", List.of(".txt записано"),
 						List.of("Сумма", "длина строки")),
 				Arguments.of("-f src/test/resources/long-line.txt", List.of("строк: 1", "длина строки: 496890"),
